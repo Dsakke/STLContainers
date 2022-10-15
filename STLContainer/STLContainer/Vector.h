@@ -107,7 +107,7 @@ namespace Container
 	{
 		for (uint32_t i{}; i < m_Size; ++i)
 		{
-			m_Allocator.destroy(m_pData + i);
+			m_pData[i].~type();
 		}
 		m_Allocator.deallocate(m_pData, m_Capacity);
 	}
@@ -223,8 +223,9 @@ namespace Container
 	{
 		for (uint32_t i{}; i < m_Size; ++i)
 		{
-			m_Allocator.destroy(m_pData + i);
+			m_pData[i].~type();
 		}
+		m_Size = 0;
 	}
 
 	template<typename type, typename allocator>
@@ -254,7 +255,7 @@ namespace Container
 	template<typename type, typename allocator>
 	inline void Vector<type, allocator>::PopBack()
 	{
-		m_Allocator.destroy(&Back());
+		Back().~type();
 		--m_Size;
 	}
 
@@ -265,7 +266,7 @@ namespace Container
 		{
 			for (int i{ newSize }; i < m_Size; ++i)
 			{
-				m_Allocator.destroy(m_pData);
+				m_pData[i].~type();
 			}
 		}
 

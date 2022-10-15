@@ -87,7 +87,7 @@ namespace Container
 		m_pData = m_Allocator.allocate(size);
 		m_Capacity = size;
 		m_Size = size;
-		for (int i{}; i < size; ++i)
+		for (uint32_t i{}; i < size; ++i)
 		{
 			m_pData[i] = type;
 		}
@@ -221,7 +221,7 @@ namespace Container
 	template<typename type, typename allocator>
 	inline void Vector<type, allocator>::Clear()
 	{
-		for (int i{}; i < m_Size; ++i)
+		for (uint32_t i{}; i < m_Size; ++i)
 		{
 			m_Allocator.destroy(m_pData + i);
 		}
@@ -288,9 +288,9 @@ namespace Container
 		other.m_Size = m_Size ^ other.m_Size;
 		m_Size = m_Size ^ other.m_Size;
 
-		m_pData = m_pData ^ other.m_pData;
-		other.m_pData = m_pData ^ other.m_pData;
-		m_pData = m_pData ^ other.m_pData;
+		type* pData = m_pData;
+		m_pData = other.m_pData;
+		other.m_pData = pData;
 	}
 
 	template<typename type, typename allocator>

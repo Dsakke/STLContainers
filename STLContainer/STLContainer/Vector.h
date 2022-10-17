@@ -10,15 +10,15 @@ namespace Container
 	{
 	public:
 #pragma region Deleted Functions
-		Vector(const Vector&) = delete;
-		Vector(Vector&&) = delete;
-		Vector& operator=(const Vector&) = delete;
-		Vector& operator=(Vector&&) = delete;
 #pragma endregion
 #pragma region De/Constructors
 		Vector();
 		Vector(uint32_t size, const type& type);
 		Vector(uint32_t capacity);
+		Vector(const Vector& other);
+		Vector(Vector&& other);
+		Vector& operator=(const Vector& other);
+		Vector& operator=(Vector&& other);
 		~Vector();
 #pragma endregion
 #pragma region Accessors
@@ -103,6 +103,62 @@ namespace Container
 	}
 
 	template<typename type, typename allocator>
+	inline Vector<type, allocator>::Vector(const Vector& other)
+		: m_pData{nullptr}
+		, m_Size{other.m_Size}
+		, m_Capacity{other.m_Capacity}
+		, m_Allocator{}
+	{
+		m_pData = m_Allocator.allocate(m_Capacity);
+		memcpy(m_pData, other.m_pData, m_Size * sizeof(this));
+	}
+
+	template<typename type, typename allocator>
+	inline Vector<type, allocator>::Vector(Vector&& other)
+		: m_pData {other.m_pData}
+		, m_Size{other.m_Size}
+		, m_Capacity{other.m_Capacity}
+		, m_Allocator{static_cast<allocator&&>(other.m_Allocator)}
+	{
+		other.m_pData = nullptr;
+		other.m_Size = 0;
+		other.m_Capacity = 0;
+	}
+
+	template<typename type, typename allocator>
+	inline Vector<type, allocator>& Vector<type, allocator>::operator=(const Vector& other)
+	{
+		if (!m_pData)
+		{
+			for (uint32_t i{}; i < m_Size; ++i)
+			{
+				m_pData[i].~type();
+			}
+			m_Allocator.deallocate(m_pData, m_Capacity);
+		}
+
+		m_Size = other.m_Size;
+		m_Capacity = other.m_Capacity;
+		m_Allocator = allocator{};
+		m_pData = m_Allocator.allocate(m_Capacity);
+		memcpy(m_pData, other.m_pData, m_Size * sizeof(type));
+		return *this;
+	}
+
+	template<typename type, typename allocator>
+	inline Vector<type, allocator>& Vector<type, allocator>::operator=(Vector&& other)
+	{
+		m_Size = other.m_Size;
+		other.m_Size;
+		m_Capacity = other.m_Capacity;
+		other.m_Capacity = 0;
+		m_pData = other.m_pData;
+		other.m_pData = nullptr;
+		m_Allocator = static_cast<allocator&&>(other.m_Allocator);
+		return *this;
+	}
+
+	template<typename type, typename allocator>
 	inline Vector<type, allocator>::~Vector()
 	{
 		for (uint32_t i{}; i < m_Size; ++i)
@@ -181,6 +237,10 @@ namespace Container
 	template<typename type, typename allocator>
 	inline bool Vector<type, allocator>::Empty() const
 	{
+		for (size_t i{}; i < m_Size; ++i)
+		{
+			m_pData[i].~type();
+		}
 		return m_Size > 0;
 	}
 

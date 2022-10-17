@@ -69,6 +69,41 @@ TEST_CASE("Vector De/constructor Tests")
 		allDestructorsFired = allDestructorsFired && destructorFired[i];
 	}
 	REQUIRE(allDestructorsFired);
+
+	Container::Vector<int> vec{100, 0};
+	for (int i{}; i < size; ++i)
+	{
+		vec[i] = i;
+	}
+	Container::Vector<int> vecCopy{ vec };
+	rightVal = true;
+	for (int i{}; i < size; ++i)
+	{
+		rightVal = rightVal && vecCopy[i] == i;
+	}
+	REQUIRE(rightVal);
+	REQUIRE(vec.Data() != vecCopy.Data());
+	int* pVecData{ vec.Data() };
+	Container::Vector<int> vec1{ std::move(vec) };
+
+	REQUIRE(pVecData == vec1.Data());
+	REQUIRE(!vec.Data());
+
+	rightVal = true;
+	vec = vec1;
+	for (int i{}; i < size; ++i)
+	{
+		rightVal = rightVal && vec[i] == i;
+	}
+
+	REQUIRE(rightVal);
+	REQUIRE(vec.Data() != vecCopy.Data());
+
+	pVecData = vec.Data();
+	vec1 = std::move(vec);
+
+	REQUIRE(vec1.Data() == pVecData);
+	REQUIRE(!vec.Data());
 }
 
 TEST_CASE("Vector Accessors tests")

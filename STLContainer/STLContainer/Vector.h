@@ -183,14 +183,12 @@ namespace Container
 	template<typename type, typename allocator>
 	inline const type& Vector<type, allocator>::operator[](uint32_t pos) const
 	{
-		assert(m_Size > pos);
 		return m_pData[pos];
 	}
 
 	template<typename type, typename allocator>
 	inline type& Vector<type, allocator>::operator[](uint32_t pos)
 	{
-		assert(m_Size > pos);
 		return m_pData[pos];
 	}
 

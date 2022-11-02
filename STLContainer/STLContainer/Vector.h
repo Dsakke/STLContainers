@@ -291,7 +291,7 @@ namespace Container
 	{
 		if (m_Size == m_Capacity)
 		{
-			Reserve(m_Capacity * 2);
+			Reallocate(m_Capacity * m_CapacityGrowth);
 		}
 
 		m_pData[m_Size] = type;

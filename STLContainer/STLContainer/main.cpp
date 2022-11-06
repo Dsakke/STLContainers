@@ -1,11 +1,24 @@
+#define Testing
+//#define Benchmarking
+
+#ifdef Testing
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 #include "catch.hpp"
-#include "Vector.h"
-#include <iostream>
 #define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
 #include <crtdbg.h>
+#endif // Testing
+#ifdef Benchmarking
+#include <vector>
+#endif // Benchmarking
 
+
+#include "Vector.h"
+#include <stdlib.h>
+#include <chrono>
+#include <iostream>
+
+#ifdef Testing
+#pragma region Vector Tests
 class TestDestructor
 {
 public:
@@ -38,12 +51,14 @@ int main(int argc, char* argv[])
 
 }
 
+// TODO rewrite test to use a class that has a ptr that gets deleted in the destructor
+// That would be the more accurate way to track whether or not the vector throws memory leaks or call the destructor twice on classes
 TEST_CASE("Vector De/constructor Tests")
 {
 	Container::Vector<int> defaultTest{};
 	REQUIRE(defaultTest.Size() == 0);
-	const int testVal{44};
-	const uint32_t size{100};
+	const int testVal{ 44 };
+	const uint32_t size{ 100 };
 	Container::Vector<int> sizeTest{ size, testVal };
 	REQUIRE(sizeTest.Size() == size);
 	bool rightVal = true;
@@ -70,7 +85,7 @@ TEST_CASE("Vector De/constructor Tests")
 	}
 	REQUIRE(allDestructorsFired);
 
-	Container::Vector<int> vec{100, 0};
+	Container::Vector<int> vec{ 100, 0 };
 	for (int i{}; i < size; ++i)
 	{
 		vec[i] = i;
@@ -106,6 +121,54 @@ TEST_CASE("Vector De/constructor Tests")
 	REQUIRE(!vec.Data());
 }
 
+TEST_CASE("Iterator tests")
+{
+	Container::Vector<int> vec0{};
+
+	// In an empty vec the begin and the end should be the same
+	REQUIRE(vec0.Begin() == vec0.End());
+	REQUIRE(vec0.CBegin() == vec0.CEnd());
+
+	vec0.PushBack(0);
+	REQUIRE(vec0.Begin() != vec0.End());
+	REQUIRE(vec0.CBegin() != vec0.CEnd());
+	vec0.Empty();
+
+	const int size = 100;
+	for (int i{}; i < size; ++i)
+	{
+		vec0.PushBack(i);
+	}
+
+	// A begin iterator + the vector size should always == it's end
+	REQUIRE((vec0.Begin() + vec0.Size()) == vec0.End());
+	REQUIRE((vec0.CBegin() + vec0.Size()) == vec0.CEnd());
+	auto it = vec0.Begin();
+	auto cIt = vec0.CBegin();
+	it += vec0.Size();
+	cIt += vec0.Size();
+	REQUIRE(it == vec0.End());
+	REQUIRE(cIt == vec0.CEnd());
+	it -= vec0.Size();
+	cIt -= vec0.Size();
+	REQUIRE(cIt == vec0.CBegin());
+	REQUIRE(it == vec0.Begin());
+
+	it = vec0.Begin();
+	cIt = vec0.CBegin();
+	bool valuesCorrect = true;
+	bool cValuesCorrect = true;
+	for (int i{}; i < size; ++i)
+	{
+		valuesCorrect = vec0[i] == *it && valuesCorrect;
+		cValuesCorrect = vec0[i] == *cIt && cValuesCorrect;
+		++it;
+		++cIt;
+	}
+	REQUIRE(valuesCorrect);
+	REQUIRE(cValuesCorrect);
+}
+
 TEST_CASE("Vector Accessors tests")
 {
 	const int size{ 100 };
@@ -133,8 +196,10 @@ TEST_CASE("Vector Accessors tests")
 
 	//Front Test
 	REQUIRE(vec.Front() == 0);
+
 	// Back Test
 	REQUIRE(vec.Back() == size - 1);
+
 	// Data Test
 	valsRight = true;
 	int* pData = vec.Data();
@@ -202,6 +267,166 @@ TEST_CASE("Vector Modifier tests")
 	REQUIRE(pInts1 != vec1.Data());
 	REQUIRE(pInts2 == vec1.Data());
 	REQUIRE(pInts2 != vec2.Data());
+	
+	Container::Vector<bool> vec3{};
+	vec3.PushBack(false);
+	auto it = vec3.Begin();
+	vec3.Emplace(it, true);
+	REQUIRE(vec3[0]);
+	vec3[0] = false;
+	vec3.Emplace(vec3.End(), true);
+	REQUIRE(vec3.Back());
+
+	Container::Vector<bool> vec4{};
+	vec4.PushBack(false);
+	it = vec4.Begin();
+	vec4.Insert(it, true);
+	REQUIRE(vec4[0]);
+	vec4[0] = false;
+	vec4.Insert(vec4.End(), true);
+	REQUIRE(vec4.Back());
+
+	Container::Vector<int> vec5{};
+	for (int i = 0; i < size; ++i)
+	{
+		vec5.EmplaceBack(i);
+	}
+	REQUIRE(vec5.Size() == size);
+	bool correctValues = true;
+	for (int i = 0; i < size; ++i)
+	{
+		correctValues = vec5[i] == i && correctValues;
+	}
+	REQUIRE(correctValues);
+
+	vec5.Erase(vec5.Begin());
+	REQUIRE(vec5.Front() == 1);
+	REQUIRE(vec5.Size() == size - 1);
+	auto it5 = vec5.Begin();
+	const int increment = 5;
+	it5 += increment;
+	vec5.Erase(it5, vec5.End());
+
+	// check if it deleted the right amoung of values
+	REQUIRE(vec5.Size() == increment);
+
+	correctValues = true;
+	for (int i{ 0 }; i < increment; ++i)
+	{
+		correctValues = vec5[i] == i + 1 && correctValues;
+	}
+
+	REQUIRE(correctValues);
+
+
+
+
 }
+
+#pragma endregion
+#endif // Testing
+
+#ifdef Benchmarking
+void PushBackBench();
+double CalcAverage(double* pTimes, const int count, double& totalTimeOut);
+
+class Timer
+{
+
+public:
+	Timer()
+		: m_StartPoint{}
+	{
+
+	}
+
+	~Timer()
+	{
+	}
+
+	void Start()
+	{
+		m_StartPoint = std::chrono::high_resolution_clock::now();
+	}
+
+	double Stop()
+	{
+		auto endTimePoint = std::chrono::high_resolution_clock::now();
+
+		auto startTime = std::chrono::time_point_cast<std::chrono::microseconds>(m_StartPoint).time_since_epoch().count();
+		auto endTime = std::chrono::time_point_cast<std::chrono::microseconds>(endTimePoint).time_since_epoch().count();
+		auto duration = endTime - startTime;
+		double ms = duration * 0.001;
+		return ms;
+	}
+private:
+
+	std::chrono::time_point<std::chrono::high_resolution_clock> m_StartPoint;
+};
+
+void PushBackBench()
+{
+#pragma region  Pushback Benchmarking
+	{
+		const int nrTests = 10000;
+		const int nrPushes = 1000;
+
+
+		Timer timer{};
+		double* pMyVecTimes = new double[nrTests]();
+		for (int test = 0; test < nrTests; ++test)
+		{
+			Container::Vector<int> vec{  };
+			vec.Reserve(nrPushes);
+			timer.Start();
+			for (int i = 0; i < nrPushes; ++i)
+			{
+				vec.PushBack(i);
+			}
+			pMyVecTimes[test] = timer.Stop();
+		}
+		double myTotalTime{};
+		std::cout << "My Vector average:\t" << CalcAverage(pMyVecTimes, nrTests, myTotalTime) << std::endl;
+		std::cout << "My Vector total time:\t" << myTotalTime << std::endl;
+
+		double* pStlVecTimes = new double[nrTests]();
+
+		for (int test = 0; test < nrTests; ++test)
+		{
+			std::vector<int> vec{ };
+			vec.reserve(nrPushes);
+			timer.Start();
+			for (int i = 0; i < nrPushes; ++i)
+			{
+				vec.push_back(i);
+			}
+			pStlVecTimes[test] = timer.Stop();
+		}
+
+		double stlTotalTime{};
+		std::cout << "STL vector average:\t" << CalcAverage(pStlVecTimes, nrTests, stlTotalTime) << std::endl;
+		std::cout << "STL Vector total time:\t" << stlTotalTime << std::endl;
+	}
+#pragma endregion
+}
+
+double CalcAverage(double* pTimes, const int count, double& totalTimeOut)
+{
+	totalTimeOut = 0.0;
+	for (int i = 0; i < count; ++i)
+	{
+		totalTimeOut += pTimes[i];
+	}
+
+	return totalTimeOut / count;
+}
+
+
+int main()
+{
+	PushBackBench();
+}
+
+#endif // Benchmarking
 
 

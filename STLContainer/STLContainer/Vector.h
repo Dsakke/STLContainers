@@ -9,6 +9,10 @@ namespace Container
 	class Vector final
 	{
 	public:
+#pragma region Type Requirments
+		static_assert(std::is_copy_assignable<type>::value);
+		static_assert(std::is_copy_constructible<type>::value);
+#pragma endregion
 #pragma region Deleted Functions
 #pragma endregion
 #pragma region Iterators

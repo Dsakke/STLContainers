@@ -132,7 +132,7 @@ TEST_CASE("Iterator tests")
 	vec0.PushBack(0);
 	REQUIRE(vec0.Begin() != vec0.End());
 	REQUIRE(vec0.CBegin() != vec0.CEnd());
-	vec0.Empty();
+	vec0.Clear();
 
 	const int size = 100;
 	for (int i{}; i < size; ++i)

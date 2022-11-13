@@ -5,10 +5,68 @@
 
 namespace Container
 {
+#pragma region Iterator Classes
+	template<class type>
+	class ConstIterator
+	{
+	public:
+		using iterator_category = std::random_access_iterator_tag;
+		ConstIterator() = delete;
+		virtual ~ConstIterator() = default;
+		ConstIterator(type* pVal);
+
+		_NODISCARD const type& operator*() const;
+		_NODISCARD const type& operator->() const;
+		ConstIterator& operator++();
+		ConstIterator operator++(int);
+		ConstIterator& operator--();
+		ConstIterator operator--(int);
+		ConstIterator& operator+=(int32_t rhs);
+		ConstIterator& operator-=(int32_t rhs);
+		ConstIterator operator+(int32_t rhs);
+		ConstIterator operator-(int32_t rhs);
+		bool operator==(const ConstIterator& rhs) const;
+		bool operator!=(const ConstIterator& rhs) const;
+	protected:
+		type* m_pValue;
+	private:
+	};
+
+
+	template<class type>
+	class Iterator final : public ConstIterator<type>
+	{
+	public:
+		using iterator_category = std::random_access_iterator_tag;
+		Iterator() = delete;
+		Iterator(type* start);
+
+		_NODISCARD type& operator*();
+		_NODISCARD type& operator->();
+		Iterator& operator++();
+		Iterator operator++(int);
+		Iterator& operator--();
+		Iterator operator--(int);
+		Iterator& operator+=(int32_t rhs);
+		Iterator& operator-=(int32_t rhs);
+		Iterator operator+(int32_t rhs);
+		Iterator operator-(int32_t rhs);
+		bool operator==(const Iterator& rhs) const;
+		bool operator!=(const Iterator& rhs) const;
+	private:
+
+	};
+
+#pragma endregion
+
 	template<typename type, typename allocator = std::allocator<type>>
 	class Vector final
 	{
 	public:
+#pragma region member types
+		using iterator = Iterator<type>;
+		using const_iterator = ConstIterator<type>;
+#pragma endregion
 #pragma region Type Requirments
 		static_assert(std::is_copy_assignable<type>::value);
 		static_assert(std::is_copy_constructible<type>::value);
@@ -16,64 +74,11 @@ namespace Container
 #pragma region Deleted Functions
 #pragma endregion
 #pragma region Iterators
-#pragma region Iterator Classes
-
-		class ConstIterator
-		{
-		public:
-			using iterator_category = std::random_access_iterator_tag;
-			ConstIterator() = delete;
-			virtual ~ConstIterator() = default;
-			ConstIterator(type* pVal);
-
-			_NODISCARD const type& operator*() const;
-			_NODISCARD const type& operator->() const;
-			ConstIterator& operator++();
-			ConstIterator operator++(int);
-			ConstIterator& operator--();
-			ConstIterator operator--(int);
-			ConstIterator& operator+=(int32_t rhs);
-			ConstIterator& operator-=(int32_t rhs);
-			ConstIterator operator+(int32_t rhs);
-			ConstIterator operator-(int32_t rhs);
-			bool operator==(const ConstIterator& rhs) const;
-			bool operator!=(const ConstIterator& rhs) const;
-		protected:
-			friend class Vector<type, allocator>;
-			type* m_pValue;
-		private:
-		};
-
-
-		class Iterator final : public ConstIterator
-		{
-		public:
-			using iterator_category = std::random_access_iterator_tag;
-			Iterator() = delete;
-			Iterator(type* start);
-
-			_NODISCARD type& operator*();
-			_NODISCARD type& operator->();
-			Iterator& operator++();
-			Iterator operator++(int);
-			Iterator& operator--();
-			Iterator operator--(int);
-			Iterator& operator+=(int32_t rhs);
-			Iterator& operator-=(int32_t rhs);
-			Iterator operator+(int32_t rhs);
-			Iterator operator-(int32_t rhs);
-			bool operator==(const Iterator& rhs) const;
-			bool operator!=(const Iterator& rhs) const;
-		private:
-
-		};
-
-#pragma endregion
 #pragma region Iterator Functions
-		Iterator Begin();
-		Iterator End();
-		ConstIterator CBegin() const;
-		ConstIterator CEnd() const;
+		iterator Begin();
+		iterator End();
+		const_iterator CBegin() const;
+		const_iterator CEnd() const;
 #pragma endregion
 #pragma endregion
 #pragma region De/Constructors
@@ -108,15 +113,15 @@ namespace Container
 #pragma endregion
 #pragma region Modifiers
 		void Clear();
-		Iterator Insert(ConstIterator pos, const type& value);
-		Iterator Insert(ConstIterator pos, type&& value);
-		Iterator Insert(ConstIterator pos, uint32_t count, const type& value);
+		iterator Insert(const_iterator pos, const type& value);
+		iterator Insert(const_iterator pos, type&& value);
+		iterator Insert(const_iterator pos, uint32_t count, const type& value);
 		template<class inIt>
-		Iterator Insert(ConstIterator pos, inIt first, inIt last);
+		iterator Insert(const_iterator pos, inIt first, inIt last);
 		template<class... ARGS>
-		Iterator Emplace(ConstIterator pos, ARGS&&... arsgs);
-		Iterator Erase(ConstIterator pos);
-		Iterator Erase(ConstIterator first, ConstIterator last);
+		iterator Emplace(const_iterator pos, ARGS&&... arsgs);
+		iterator Erase(const_iterator pos);
+		iterator Erase(const_iterator first, const_iterator last);
 		void PushBack(const type& type);
 		void PushBack(type&& type);
 		template<class... ARGS>
@@ -142,8 +147,8 @@ namespace Container
 
 	};
 
-	template<typename type, typename allocator>
-	inline Vector<type, allocator>::Iterator::Iterator(type* start)
+	template<typename type>
+	inline Iterator<type>::Iterator(type* start)
 		: ConstIterator{ start }
 	{
 	}
@@ -307,27 +312,27 @@ namespace Container
 	}
 
 	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::Iterator Vector<type, allocator>::Begin()
+	inline typename Vector<type, allocator>::iterator Vector<type, allocator>::Begin()
 	{
-		return Vector<type, allocator>::Iterator{m_pData};
+		return Vector<type, allocator>::iterator{m_pData};
 	}
 
 	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::Iterator Vector<type, allocator>::End()
+	inline typename Vector<type, allocator>::iterator Vector<type, allocator>::End()
 	{
-		return Vector<type, allocator>::Iterator{m_pData + m_Size};
+		return Vector<type, allocator>::iterator{m_pData + m_Size};
 	}
 
 	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::ConstIterator Vector<type, allocator>::CBegin() const
+	inline typename Vector<type, allocator>::const_iterator Vector<type, allocator>::CBegin() const
 	{
-		return ConstIterator(m_pData);
+		return const_iterator(m_pData);
 	}
 
 	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::ConstIterator Vector<type, allocator>::CEnd() const
+	inline typename Vector<type, allocator>::const_iterator Vector<type, allocator>::CEnd() const
 	{
-		return ConstIterator(m_pData + m_Size);
+		return const_iterator(m_pData + m_Size);
 	}
 
 	template<typename type, typename allocator>
@@ -385,13 +390,13 @@ namespace Container
 	}
 
 	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::Iterator Vector<type, allocator>::Insert(ConstIterator pos, const type& value)
+	inline typename Vector<type, allocator>::iterator Vector<type, allocator>::Insert(const_iterator pos, const type& value)
 	{
 		return Emplace(pos, value);
 	}
 
 	template<typename type, typename allocator>
-	inline Vector<type, allocator>::Iterator Vector<type, allocator>::Insert(ConstIterator pos, type&& value)
+	inline Vector<type, allocator>::iterator Vector<type, allocator>::Insert(const_iterator pos, type&& value)
 	{
 		return Emplace(pos, value);
 	}
@@ -404,7 +409,7 @@ namespace Container
 	}
 
 	template<typename type, typename allocator>
-	inline Vector<type, allocator>::Iterator Vector<type, allocator>::Insert(ConstIterator pos, uint32_t count, const type& value)
+	inline Vector<type, allocator>::iterator Vector<type, allocator>::Insert(const_iterator pos, uint32_t count, const type& value)
 	{
 		if (count == 0)
 		{
@@ -429,12 +434,13 @@ namespace Container
 			m_pData[distanceToStart + i] = value;
 		}
 
-		return Iterator(m_pData + distanceToStart);
+		return iterator(m_pData + distanceToStart);
 	}
 
 	template<typename type, typename allocator>
 	template<class inIt>
-	inline Vector<type, allocator>::Iterator Vector<type, allocator>::Insert(ConstIterator pos, inIt first, inIt last)
+	inline Vector<type, allocator>::iterator
+ Vector<type, allocator>::Insert(const_iterator pos, inIt first, inIt last)
 	{
 		if (first == last)
 		{
@@ -461,12 +467,12 @@ namespace Container
 			++first;
 		}
 
-		return Iterator(m_pData + distanceToStart);
+		return iterator(m_pData + distanceToStart);
 	}
 
 	template<typename type, typename allocator>
 	template<class... ARGS>
-	inline typename Vector<type, allocator>::Iterator Vector<type, allocator>::Emplace(ConstIterator pos, ARGS&&... args)
+	inline typename Vector<type, allocator>::iterator Vector<type, allocator>::Emplace(const_iterator pos, ARGS&&... args)
 	{
 		type* location = pos.m_pValue;
 		assert(location >= m_pData && location <= m_pData + m_Size);
@@ -480,11 +486,11 @@ namespace Container
 
 		std::memmove(m_pData + distanceToStart + 1, m_pData + distanceToStart, distanceToEnd * sizeof(type)); // memmove because the src and dest will overlap
 		m_pData[distanceToStart] = type(args...);
-		return Iterator(m_pData + distanceToStart);
+		return iterator(m_pData + distanceToStart);
 	}
 
 	template<typename type, typename allocator>
-	inline Vector<type, allocator>::Iterator Vector<type, allocator>::Erase(ConstIterator pos)
+	inline Vector<type, allocator>::iterator Vector<type, allocator>::Erase(const_iterator pos)
 	{
 		type* location = pos.m_pValue;
 
@@ -499,11 +505,11 @@ namespace Container
 		std::memmove(m_pData + distanceToStart, m_pData + distanceToStart + 1, distanceToEnd * sizeof(type));
 		--m_Size;
 
-		return Iterator(pos.m_pValue);
+		return iterator(pos.m_pValue);
 	}
 
 	template<typename type, typename allocator>
-	Vector<type, allocator>::Iterator Vector<type, allocator>::Erase(ConstIterator first, ConstIterator last)
+	Vector<type, allocator>::iterator Vector<type, allocator>::Erase(const_iterator first, const_iterator last)
 	{
 		type* firstLoc = first.m_pValue;
 		type* lastLoc = last.m_pValue;
@@ -515,7 +521,7 @@ namespace Container
 
 		if constexpr (!std::is_trivially_destructible<type>::value)
 		{
-			for (ConstIterator it{first}; it != last; ++it)
+			for (const_iterator it{first}; it != last; ++it)
 			{
 				it->~type();
 			}
@@ -524,7 +530,7 @@ namespace Container
 		m_Size -= eraseCount;
 		// memmove because locations might overlap
 		std::memmove(firstLoc, lastLoc, sizeToMove);
-		return Iterator{ firstLoc };
+		return iterator{ firstLoc };
 	}
 
 
@@ -600,169 +606,169 @@ namespace Container
 		m_Capacity = newCapacity;
 	}
 
-	template<typename type, typename allocator>
-	inline type& Vector<type, allocator>::Iterator::operator*()
+	template<typename type>
+	inline type& Iterator<type>::operator*()
 	{
 		return *ConstIterator::m_pValue;
 	}
 
-	template<typename type, typename allocator>
-	inline type& Vector<type, allocator>::Iterator::operator->()
+	template<typename type>
+	inline type& Iterator<type>::operator->()
 	{
 		return *ConstIterator::m_pValue;
 	}
 
-	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::Iterator Vector<type, allocator>::Iterator::operator+(int32_t rhs)
+	template<typename type>
+	inline typename Iterator<type> Iterator<type>::operator+(int32_t rhs)
 	{
 		return Iterator(ConstIterator::m_pValue + rhs);
 	}
 
-	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::Iterator Vector<type, allocator>::Iterator::operator-(int32_t rhs)
+	template<typename type>
+	inline typename Iterator<type> Iterator<type>::operator-(int32_t rhs)
 	{
 		return Iterator(ConstIterator::m_pValue - rhs);
 	}
 
 
-	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::Iterator& Vector<type, allocator>::Iterator::operator++()
+	template<typename type>
+	inline typename Iterator<type>& Iterator<type>::operator++()
 	{
 		++ConstIterator::m_pValue;
 		return *this;
 	}
 
-	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::Iterator Vector<type, allocator>::Iterator::operator++(int)
+	template<typename type>
+	inline typename Iterator<type> Iterator<type>::operator++(int)
 	{
 		Iterator temp = *this;
 		++ConstIterator::m_pValue;
 		return temp;
 	}
 
-	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::Iterator& Vector<type, allocator>::Iterator::operator--()
+	template<typename type>
+	inline typename Iterator<type>& Iterator<type>::operator--()
 	{
 		--ConstIterator::m_pValue;
 		return *this;
 	}
 
-	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::Iterator Vector<type, allocator>::Iterator::operator--(int)
+	template<typename type>
+	inline typename Iterator<type> Iterator<type>::operator--(int)
 	{
 		Iterator temp = *this;
 		--ConstIterator::m_pValue;
 		return temp;
 	}
 
-	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::Iterator& Vector<type, allocator>::Iterator::operator+=(int32_t rhs)
+	template<typename type>
+	inline typename Iterator<type>& Iterator<type>::operator+=(int32_t rhs)
 	{
 		ConstIterator::m_pValue += rhs;
 		return *this;
 	}
 
-	template<typename type, typename allocator>
-	inline Vector<type, allocator>::ConstIterator::ConstIterator(type* pVal)
+	template<typename type>
+	inline ConstIterator<type>::ConstIterator(type* pVal)
 		: m_pValue{pVal}
 	{
 	}
 
-	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::Iterator& Vector<type, allocator>::Iterator::operator-=(int32_t rhs)
+	template<typename type>
+	inline typename Iterator<type>& Iterator<type>::operator-=(int32_t rhs)
 	{
 		ConstIterator::m_pValue -= rhs;
 		return *this;
 	}
 
-	template<typename type, typename allocator>
-	inline bool Vector<type, allocator>::Iterator::operator==(const Iterator& rhs) const
+	template<typename type>
+	inline bool Iterator<type>::operator==(const Iterator& rhs) const
 	{
 		return ConstIterator::m_pValue == rhs.m_pValue;
 	}
 
-	template<typename type, typename allocator>
-	inline bool Vector<type, allocator>::Iterator::operator!=(const Iterator& rhs) const
+	template<typename type>
+	inline bool Iterator<type>::operator!=(const Iterator& rhs) const
 	{
 		return ConstIterator::m_pValue != rhs.m_pValue;
 	}
 
-	template<typename type, typename allocator>
-	inline const type& Vector<type, allocator>::ConstIterator::operator*() const
+	template<typename type>
+	inline const type& ConstIterator<type>::operator*() const
 	{
 		return *m_pValue;
 	}
 
-	template<typename type, typename allocator>
-	inline const type& Vector<type, allocator>::ConstIterator::operator->() const
+	template<typename type>
+	inline const type& ConstIterator<type>::operator->() const
 	{
 		return *m_pValue;
 	}
 
-	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::ConstIterator& Vector<type, allocator>::ConstIterator::operator++()
+	template<typename type>
+	inline typename ConstIterator<type>& ConstIterator<type>::operator++()
 	{
 		++m_pValue;
 		return *this;
 	}
 
-	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::ConstIterator Vector<type, allocator>::ConstIterator::operator+(int32_t rhs)
+	template<typename type>
+	inline typename ConstIterator<type> ConstIterator<type>::operator+(int32_t rhs)
 	{
 		return ConstIterator{m_pValue + rhs};
 	}
 
-	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::ConstIterator Vector<type, allocator>::ConstIterator::operator-(int32_t rhs)
+	template<typename type>
+	inline typename ConstIterator<type> ConstIterator<type>::operator-(int32_t rhs)
 	{
 		return ConstIterator{ m_pValue - rhs };
 	}
 
-	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::ConstIterator Vector<type, allocator>::ConstIterator::operator++(int)
+	template<typename type>
+	inline typename ConstIterator<type> ConstIterator<type>::operator++(int)
 	{
 		ConstIterator temp = *this;
 		++m_pValue;
 		return temp;
 	}
 
-	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::ConstIterator& Vector<type, allocator>::ConstIterator::operator--()
+	template<typename type>
+	inline typename ConstIterator<type>& ConstIterator<type>::operator--()
 	{
 		--m_pValue;
 		return *this;
 	}
 
-	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::ConstIterator Vector<type, allocator>::ConstIterator::operator--(int)
+	template<typename type>
+	inline typename ConstIterator<type> ConstIterator<type>::operator--(int)
 	{
 		ConstIterator temp = *this;
 		--m_pValue;
 		return temp;
 	}
 
-	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::ConstIterator& Vector<type, allocator>::ConstIterator::operator+=(int32_t rhs)
+	template<typename type>
+	inline typename ConstIterator<type>& ConstIterator<type>::operator+=(int32_t rhs)
 	{
 		m_pValue += rhs;
 		return *this;
 	}
 
-	template<typename type, typename allocator>
-	inline typename Vector<type, allocator>::ConstIterator& Vector<type, allocator>::ConstIterator::operator-=(int32_t rhs)
+	template<typename type>
+	inline typename ConstIterator<type>& ConstIterator<type>::operator-=(int32_t rhs)
 	{
 		m_pValue -= rhs;
 		return *this;
 	}
 
-	template<typename type, typename allocator>
-	inline bool Vector<type, allocator>::ConstIterator::operator==(const ConstIterator& rhs) const
+	template<typename type>
+	inline bool ConstIterator<type>::operator==(const ConstIterator& rhs) const
 	{
 		return m_pValue == rhs.m_pValue;
 	}
 
-	template<typename type, typename allocator>
-	inline bool Vector<type, allocator>::ConstIterator::operator!=(const ConstIterator& rhs) const
+	template<typename type>
+	inline bool ConstIterator<type>::operator!=(const ConstIterator& rhs) const
 	{
 		return m_pValue != rhs.m_pValue;
 	}

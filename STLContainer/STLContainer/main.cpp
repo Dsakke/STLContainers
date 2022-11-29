@@ -1,5 +1,5 @@
-#define Testing
-//#define Benchmarking
+//#define Testing
+#define Benchmarking
 
 #ifdef Testing
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
@@ -328,6 +328,7 @@ TEST_CASE("Vector Modifier tests")
 
 #ifdef Benchmarking
 void PushBackBench();
+void ResizeBench();
 double CalcAverage(double* pTimes, const int count, double& totalTimeOut);
 
 class Timer
@@ -364,10 +365,11 @@ private:
 	std::chrono::time_point<std::chrono::high_resolution_clock> m_StartPoint;
 };
 
+#pragma region  Pushback Benchmarking
 void PushBackBench()
 {
-#pragma region  Pushback Benchmarking
 	{
+		std::cout << "*** Push back test ***\n";
 		const int nrTests = 10000;
 		const int nrPushes = 1000;
 
@@ -407,8 +409,60 @@ void PushBackBench()
 		std::cout << "STL vector average:\t" << CalcAverage(pStlVecTimes, nrTests, stlTotalTime) << std::endl;
 		std::cout << "STL Vector total time:\t" << stlTotalTime << std::endl;
 	}
-#pragma endregion
 }
+#pragma endregion
+
+#pragma region Resize benchmark
+void ResizeBench() // to check how fast the reallocate functions are comparered to std::vector
+{
+	std::cout << "*** Resize test ***\n";
+
+	const int nrTests = 100000;
+	const int size = 100000;
+	double* pMyVecTimes = new double[nrTests]{};
+
+
+	Timer timer{};
+	{
+		Container::Vector<int> myVec{};
+		myVec.PushBack(0);
+		for (int i{}; i < nrTests; ++i)
+		{
+			timer.Start();
+			myVec.Reserve(size);
+			myVec.ShrinkToFit();
+			pMyVecTimes[i] = timer.Stop();
+		}
+		double myTotalTime{  };
+		std::cout << "My Vector average:\t" << CalcAverage(pMyVecTimes, nrTests, myTotalTime) << std::endl;
+		std::cout << "My Vector total time:\t" << myTotalTime << std::endl;
+	}
+
+	{
+		std::vector<int> stlVec{};
+		stlVec.push_back(0);
+		double* pStlVecTimes = new double[nrTests] {};
+		for (int i{}; i < nrTests; ++i)
+		{
+			timer.Start();
+			stlVec.reserve(size);
+			stlVec.shrink_to_fit();
+			pStlVecTimes[i] = timer.Stop();
+		}
+		double stdVecTotalTime{};
+		std::cout << "STL Vector average:\t" << CalcAverage(pStlVecTimes, nrTests, stdVecTotalTime) << std::endl;
+		std::cout << "STL Vector total time:\t" << stdVecTotalTime << std::endl;
+	}
+
+	// Results on my reallocation are generally slightly slower than std::vector
+	// I think the reallocation isn't actually faster but the shrink to fit in std::vector checks if the vector is empty
+	// and deletes all data instead of reallocating 
+	// When I try to do the same test with 1 element in the vector mine is faster
+	// I am considering copying what STL does but it seems like an edge case and 
+	// will cause branching in all other cases which can actually be a performance loss
+}
+#pragma endregion
+
 
 double CalcAverage(double* pTimes, const int count, double& totalTimeOut)
 {
@@ -425,6 +479,7 @@ double CalcAverage(double* pTimes, const int count, double& totalTimeOut)
 int main()
 {
 	PushBackBench();
+	ResizeBench();
 }
 
 #endif // Benchmarking

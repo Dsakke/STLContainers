@@ -11,7 +11,6 @@ namespace Container
 	{
 	public:
 		using iterator_category = std::random_access_iterator_tag;
-		ConstIterator() = delete;
 		virtual ~ConstIterator() = default;
 		ConstIterator(type* pVal);
 
@@ -27,9 +26,8 @@ namespace Container
 		ConstIterator operator-(int32_t rhs);
 		bool operator==(const ConstIterator& rhs) const;
 		bool operator!=(const ConstIterator& rhs) const;
-	protected:
+
 		type* m_pValue;
-	private:
 	};
 
 
@@ -149,7 +147,7 @@ namespace Container
 
 	template<typename type>
 	inline Iterator<type>::Iterator(type* start)
-		: ConstIterator{ start }
+		: ConstIterator<type>{ start }
 	{
 	}
 
@@ -609,32 +607,32 @@ namespace Container
 	template<typename type>
 	inline type& Iterator<type>::operator*()
 	{
-		return *ConstIterator::m_pValue;
+		return *(this->m_pValue);
 	}
 
 	template<typename type>
 	inline type& Iterator<type>::operator->()
 	{
-		return *ConstIterator::m_pValue;
+		return *(this->m_pValue);
 	}
 
 	template<typename type>
 	inline typename Iterator<type> Iterator<type>::operator+(int32_t rhs)
 	{
-		return Iterator(ConstIterator::m_pValue + rhs);
+		return Iterator(this->m_pValue + rhs);
 	}
 
 	template<typename type>
 	inline typename Iterator<type> Iterator<type>::operator-(int32_t rhs)
 	{
-		return Iterator(ConstIterator::m_pValue - rhs);
+		return Iterator(this->m_pValue - rhs);
 	}
 
 
 	template<typename type>
 	inline typename Iterator<type>& Iterator<type>::operator++()
 	{
-		++ConstIterator::m_pValue;
+		++(this->m_pValue);
 		return *this;
 	}
 
@@ -642,14 +640,14 @@ namespace Container
 	inline typename Iterator<type> Iterator<type>::operator++(int)
 	{
 		Iterator temp = *this;
-		++ConstIterator::m_pValue;
+		++(this->m_pValue);
 		return temp;
 	}
 
 	template<typename type>
 	inline typename Iterator<type>& Iterator<type>::operator--()
 	{
-		--ConstIterator::m_pValue;
+		--(this->m_pValue);
 		return *this;
 	}
 
@@ -657,14 +655,14 @@ namespace Container
 	inline typename Iterator<type> Iterator<type>::operator--(int)
 	{
 		Iterator temp = *this;
-		--ConstIterator::m_pValue;
+		--(this->m_pValue);
 		return temp;
 	}
 
 	template<typename type>
 	inline typename Iterator<type>& Iterator<type>::operator+=(int32_t rhs)
 	{
-		ConstIterator::m_pValue += rhs;
+		this->m_pValue += rhs;
 		return *this;
 	}
 
@@ -677,20 +675,20 @@ namespace Container
 	template<typename type>
 	inline typename Iterator<type>& Iterator<type>::operator-=(int32_t rhs)
 	{
-		ConstIterator::m_pValue -= rhs;
+		this->m_pValue -= rhs;
 		return *this;
 	}
 
 	template<typename type>
 	inline bool Iterator<type>::operator==(const Iterator& rhs) const
 	{
-		return ConstIterator::m_pValue == rhs.m_pValue;
+		return this->m_pValue == rhs.m_pValue;
 	}
 
 	template<typename type>
 	inline bool Iterator<type>::operator!=(const Iterator& rhs) const
 	{
-		return ConstIterator::m_pValue != rhs.m_pValue;
+		return this->m_pValue != rhs.m_pValue;
 	}
 
 	template<typename type>

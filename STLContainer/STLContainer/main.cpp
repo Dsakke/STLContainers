@@ -22,6 +22,9 @@
 class TestDestructor
 {
 public:
+	TestDestructor()
+		: m_pIsDestroyed{nullptr}
+	{ }
 	~TestDestructor()
 	{
 		if (m_pIsDestroyed)
@@ -212,7 +215,74 @@ TEST_CASE("Vector Accessors tests")
 
 TEST_CASE("Vector Modifier tests")
 {
+	// Clear tests
+	const int size = 100;
+	bool destructorFired[size]{ false };
+	Container::Vector<TestDestructor> clearTest{ size, TestDestructor{} };
+	REQUIRE(clearTest.Size() == size);
+	for (uint32_t i{}; i < size; ++i)
+	{
+		clearTest[i].m_pIsDestroyed = destructorFired + i;
+	}
+	clearTest.Clear();
+	bool allDestructorsFired = true;
+	for (int i{}; i < size; ++i)
+	{
+		allDestructorsFired = allDestructorsFired && destructorFired[i];
+	}
+	REQUIRE(allDestructorsFired);
 
+	// Insert tests
+	Container::Vector<bool> vec3{};
+	vec3.PushBack(false);
+	auto it = vec3.Begin();
+	vec3.Insert(it, true);
+	REQUIRE(vec3[0]);
+	vec3[0] = false;
+	vec3.Insert(vec3.End(), true);
+	REQUIRE(vec3.Back());
+
+	// Emplace tests
+	Container::Vector<bool> vec4{};
+	vec4.PushBack(false);
+	it = vec4.Begin();
+	vec4.Emplace(it, true);
+	REQUIRE(vec4[0]);
+	vec4[0] = false;
+	vec4.Emplace(vec4.End(), true);
+	REQUIRE(vec4.Back());
+
+	// Emplace back tests
+	Container::Vector<int> vec5{};
+	for (int i = 0; i < size; ++i)
+	{
+		vec5.EmplaceBack(i);
+	}
+	REQUIRE(vec5.Size() == size);
+	bool correctValues = true;
+	for (int i = 0; i < size; ++i)
+	{
+		correctValues = vec5[i] == i && correctValues;
+	}
+	REQUIRE(correctValues);
+
+	// Erase tests
+	vec5.Erase(vec5.Begin());
+	REQUIRE(vec5.Front() == 1);
+	REQUIRE(vec5.Size() == size - 1);
+	auto it5 = vec5.Begin();
+	const int increment = 5;
+	it5 += increment;
+	vec5.Erase(it5, vec5.End());
+	REQUIRE(vec5.Size() == increment); // check if it deleted the right amoung of values
+	correctValues = true;
+	for (int i{ 0 }; i < increment; ++i)
+	{
+		correctValues = vec5[i] == i + 1 && correctValues;
+	}
+	REQUIRE(correctValues);
+
+	// Push/popback test
 	Container::Vector<int> vec{};
 	vec.PushBack(0);
 	REQUIRE(vec.Size() == 1);
@@ -241,23 +311,28 @@ TEST_CASE("Vector Modifier tests")
 	vec.PushBack(std::move(i));
 	REQUIRE(vec.Size() == 1);
 	REQUIRE(vec.Front() == 5);
-	const int size = 100;
-	bool destructorFired[size]{ false };
 
-	Container::Vector<TestDestructor> clearTest{ size, TestDestructor{} };
-	REQUIRE(clearTest.Size() == size);
-	for (uint32_t i{}; i < size; ++i)
+	// Resize test
+	Container::Vector<TestDestructor> resizeVec{};
+	const uint32_t resizeSize1{ 100 };
+	const uint32_t resizeSize2{ 5 };
+	bool resizeDestructed[resizeSize1]{ false };
+	resizeVec.Resize(100);
+	REQUIRE(resizeVec.Size() == resizeSize1);
+	for (uint32_t i{}; i < resizeSize1; ++i)
 	{
-		clearTest[i].m_pIsDestroyed = destructorFired + i;
+		resizeVec[i].m_pIsDestroyed = &resizeDestructed[i];
 	}
-	clearTest.Clear();
-	bool allDestructorsFired = true;
-	for (int i{}; i < size; ++i)
+	resizeVec.Resize(5);
+	REQUIRE(resizeVec.Size() == resizeSize2);
+	bool resizeAllDestructed{ true };
+	for (uint32_t i{ resizeSize2 }; i < resizeSize1; ++i)
 	{
-		allDestructorsFired = allDestructorsFired && destructorFired[i];
+		resizeAllDestructed = resizeDestructed[i] & resizeAllDestructed;
 	}
-	REQUIRE(allDestructorsFired);
+	REQUIRE(resizeAllDestructed);
 
+	// Swap Tests
 	Container::Vector<int> vec1{};
 	Container::Vector<int> vec2{};
 	int* pInts1 = vec1.Data();
@@ -268,57 +343,6 @@ TEST_CASE("Vector Modifier tests")
 	REQUIRE(pInts2 == vec1.Data());
 	REQUIRE(pInts2 != vec2.Data());
 	
-	Container::Vector<bool> vec3{};
-	vec3.PushBack(false);
-	auto it = vec3.Begin();
-	vec3.Emplace(it, true);
-	REQUIRE(vec3[0]);
-	vec3[0] = false;
-	vec3.Emplace(vec3.End(), true);
-	REQUIRE(vec3.Back());
-
-	Container::Vector<bool> vec4{};
-	vec4.PushBack(false);
-	it = vec4.Begin();
-	vec4.Insert(it, true);
-	REQUIRE(vec4[0]);
-	vec4[0] = false;
-	vec4.Insert(vec4.End(), true);
-	REQUIRE(vec4.Back());
-
-	Container::Vector<int> vec5{};
-	for (int i = 0; i < size; ++i)
-	{
-		vec5.EmplaceBack(i);
-	}
-	REQUIRE(vec5.Size() == size);
-	bool correctValues = true;
-	for (int i = 0; i < size; ++i)
-	{
-		correctValues = vec5[i] == i && correctValues;
-	}
-	REQUIRE(correctValues);
-
-	vec5.Erase(vec5.Begin());
-	REQUIRE(vec5.Front() == 1);
-	REQUIRE(vec5.Size() == size - 1);
-	auto it5 = vec5.Begin();
-	const int increment = 5;
-	it5 += increment;
-	vec5.Erase(it5, vec5.End());
-
-	// check if it deleted the right amoung of values
-	REQUIRE(vec5.Size() == increment);
-
-	correctValues = true;
-	for (int i{ 0 }; i < increment; ++i)
-	{
-		correctValues = vec5[i] == i + 1 && correctValues;
-	}
-
-	REQUIRE(correctValues);
-
-
 
 
 }

@@ -570,17 +570,26 @@ namespace Container
 	template<typename type, typename allocator>
 	inline void Vector<type, allocator>::Resize(uint32_t newSize)
 	{
-		if (newSize < m_Size)
+		static_assert(std::is_default_constructible<type>::value, "type needs to be default constructable");
+		if constexpr (!std::is_trivially_destructible<type>::value)
 		{
-			for (int i{ newSize }; i < m_Size; ++i)
+			if (newSize < m_Size)
 			{
-				m_pData[i].~type();
+				for (size_t i{ newSize }; i < m_Size; ++i)
+				{
+					m_pData[i].~type();
+				}
 			}
 		}
 
 		if (newSize > m_Capacity)
 		{
-			Reallocate(m_Capacity * m_CapacityGrowth);
+			uint32_t oldCap = m_Capacity;
+			Reallocate(newSize);
+			for (uint32_t i{ m_Size }; i < m_Capacity; ++i)
+			{
+				m_pData[i] = type{};
+			}
 		}
 		
 		m_Size = newSize;

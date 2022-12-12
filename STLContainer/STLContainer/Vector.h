@@ -73,10 +73,10 @@ namespace Container
 #pragma endregion
 #pragma region Iterators
 #pragma region Iterator Functions
-		iterator Begin();
-		iterator End();
-		const_iterator CBegin() const;
-		const_iterator CEnd() const;
+		_NODISCARD iterator Begin();
+		_NODISCARD iterator End();
+		_NODISCARD const_iterator CBegin() const;
+		_NODISCARD const_iterator CEnd() const;
 #pragma endregion
 #pragma endregion
 #pragma region De/Constructors

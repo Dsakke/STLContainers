@@ -183,6 +183,45 @@ namespace Containers
 	}
 
 	template<class key, class t, class hash, class allocator>
+	inline bool UnorderedMap<key, t, hash, allocator>::IsEmpty() const
+	{
+		for (uint32_t i{}; i < m_NrBuckets; ++i)
+		{
+			if(m_pBuckets.isAssigned)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	template<class key, class t, class hash, class allocator>
+	inline uint32_t UnorderedMap<key, t, hash, allocator>::GetSize() const
+	{
+		uint32_t totalCount{};
+		for (uint32_t i{}; i < m_NrBuckets; ++i)
+		{
+			if (m_pBuckets[i].isAssigned)
+			{
+				continue;
+			}
+
+			++totalCount;
+			Bucket* pBucket = m_pBuckets[i].pNext;
+			while (pBucket)
+			{
+				if (!pBucket.isAssigned)
+				{
+					break;
+				}
+				++totalCount;
+				pBucket = pBucket.pNext;
+			}
+		}
+		return totalCount;
+	}
+
+	template<class key, class t, class hash, class allocator>
 	inline UnorderedMap<key, t, hash, allocator>::Bucket* CopyBuckets(const UnorderedMap<key, t, hash, allocator>& other)
 	{
 		Bucket* pOut = m_Allocator.allocate(other.m_NrBuckets);

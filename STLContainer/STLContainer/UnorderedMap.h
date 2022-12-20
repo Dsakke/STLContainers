@@ -55,7 +55,7 @@ namespace Containers
 #pragma region Constructors
 
 		UnorderedMap();
-		UnorderedMap(uint32_t bucketCount, const hash& hash, const allocator& alloc = std::allocator<Pair<key, t>>);
+		UnorderedMap(uint32_t bucketCount, const hash& hash, const allocator& alloc);
 		
 #pragma endregion
 #pragma region Capacity
@@ -95,6 +95,7 @@ namespace Containers
 		float m_MaxLoadFactor = 2.f;
 
 		const static uint32_t DEFAULT_NR_BUCKETS = 10;
+
 #pragma region Helper functions
 		Bucket* CopyBuckets(const UnorderedMap& other);
 		void DeleteBuckets();
@@ -156,16 +157,29 @@ namespace Containers
 	}
 
 	template<class key, class t, class hash, class allocator>
-	inline bool UnorderedMap<key, t, hash, allocator>::IsEmpty() const
+	inline UnorderedMap<key, t, hash, allocator>::~UnorderedMap()
 	{
-		for (uint32_t i{}; i < m_NrBuckets; ++i)
-		{
-			if(m_pBuckets.isAssigned)
-			{
-				return false;
-			}
-		}
-		return true;
+		DeleteBuckets();
+	}
+
+	template<class key, class t, class hash, class allocator>
+	inline UnorderedMap<key, t, hash, allocator>::UnorderedMap()
+		: m_Allocator{ allocator{} }
+		, m_pBuckets{nullptr}
+		, m_NrBuckets{DEFAULT_NR_BUCKETS}
+		, m_MaxLoadFactor{2.f}
+	{
+		m_pBuckets = m_Allocator.allocate(m_NrBuckets);
+	}
+
+	template<class key, class t, class hash, class allocator>
+	inline UnorderedMap<key, t, hash, allocator>::UnorderedMap(uint32_t bucketCount, const hash& hash, const allocator& alloc)
+		: m_Allocator{alloc}
+		, m_NrBuckets{bucketCount}
+		, m_pBuckets{nullptr}
+		, m_MaxLoadFactor{2.f}
+	{
+		m_pBuckets = m_Allocator.allocate(m_NrBuckets);
 	}
 
 	template<class key, class t, class hash, class allocator>

@@ -32,5 +32,8 @@
     <ClInclude Include="catch.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="UnorderedMap.h">
+      <Filter>Containers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

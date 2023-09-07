@@ -394,4 +394,42 @@ namespace Containers
 
 		return nullptr;
 	}
+
+	template<class _Key, class _T, class _Hash, class _Allocator>
+	inline UnorderedMap<_Key, _T, _Hash, _Allocator>::Bucket::Bucket(const Bucket& other)
+		: pair{ other.pair }
+		, isAssigned{ other }
+		, pNext{ other.pNext }
+	{
+	}
+
+	template<class _Key, class _T, class _Hash, class _Allocator>
+	inline UnorderedMap<_Key, _T, _Hash, _Allocator>::Bucket::Bucket(Bucket&& other)
+		: pair{ std::move(other.pair) }
+		, isAssigned{ other.isAssigned }
+		, pNext{ other.pNext }
+	{
+		other.isAssigned = false;
+		other.pNext = nullptr;
+	}
+
+	template<class _Key, class _T, class _Hash, class _Allocator>
+	inline UnorderedMap<_Key, _T, _Hash, _Allocator>::Bucket& UnorderedMap<_Key, _T, _Hash, _Allocator>::Bucket::operator=(const Bucket& rhs)
+	{
+		pair = other.pair;
+		isAssigned = other.isAssigned;
+		pNext = other.pNext;
+
+		return *this;
+	}
+	template<class _Key, class _T, class _Hash, class _Allocator>
+	inline UnorderedMap<_Key, _T, _Hash, _Allocator>::Bucket& UnorderedMap<_Key, _T, _Hash, _Allocator>::Bucket::operator=(Bucket&& rhs)
+	{
+		pair = std::move(other.pair);
+		isAssigned = other.isAssigned;
+		pNext = other.pNext;
+
+		other.pNext = nullptr;
+		other.isAssigned = false;
+	}
 }

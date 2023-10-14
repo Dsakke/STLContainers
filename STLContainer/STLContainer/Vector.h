@@ -626,27 +626,27 @@ namespace Container
 	}
 
 	template<typename type>
-	inline typename Iterator<type> Iterator<type>::operator+(int32_t rhs)
+	inline Iterator<type> Iterator<type>::operator+(int32_t rhs)
 	{
 		return Iterator(this->m_pValue + rhs);
 	}
 
 	template<typename type>
-	inline typename Iterator<type> Iterator<type>::operator-(int32_t rhs)
+	inline  Iterator<type> Iterator<type>::operator-(int32_t rhs)
 	{
 		return Iterator(this->m_pValue - rhs);
 	}
 
 
 	template<typename type>
-	inline typename Iterator<type>& Iterator<type>::operator++()
+	inline  Iterator<type>& Iterator<type>::operator++()
 	{
 		++(this->m_pValue);
 		return *this;
 	}
 
 	template<typename type>
-	inline typename Iterator<type> Iterator<type>::operator++(int)
+	inline  Iterator<type> Iterator<type>::operator++(int)
 	{
 		Iterator temp = *this;
 		++(this->m_pValue);
@@ -654,14 +654,14 @@ namespace Container
 	}
 
 	template<typename type>
-	inline typename Iterator<type>& Iterator<type>::operator--()
+	inline  Iterator<type>& Iterator<type>::operator--()
 	{
 		--(this->m_pValue);
 		return *this;
 	}
 
 	template<typename type>
-	inline typename Iterator<type> Iterator<type>::operator--(int)
+	inline  Iterator<type> Iterator<type>::operator--(int)
 	{
 		Iterator temp = *this;
 		--(this->m_pValue);
@@ -669,7 +669,7 @@ namespace Container
 	}
 
 	template<typename type>
-	inline typename Iterator<type>& Iterator<type>::operator+=(int32_t rhs)
+	inline  Iterator<type>& Iterator<type>::operator+=(int32_t rhs)
 	{
 		this->m_pValue += rhs;
 		return *this;
@@ -682,7 +682,7 @@ namespace Container
 	}
 
 	template<typename type>
-	inline typename Iterator<type>& Iterator<type>::operator-=(int32_t rhs)
+	inline  Iterator<type>& Iterator<type>::operator-=(int32_t rhs)
 	{
 		this->m_pValue -= rhs;
 		return *this;
@@ -713,26 +713,26 @@ namespace Container
 	}
 
 	template<typename type>
-	inline typename ConstIterator<type>& ConstIterator<type>::operator++()
+	inline ConstIterator<type>& ConstIterator<type>::operator++()
 	{
 		++m_pValue;
 		return *this;
 	}
 
 	template<typename type>
-	inline typename ConstIterator<type> ConstIterator<type>::operator+(int32_t rhs)
+	inline  ConstIterator<type> ConstIterator<type>::operator+(int32_t rhs)
 	{
 		return ConstIterator{m_pValue + rhs};
 	}
 
 	template<typename type>
-	inline typename ConstIterator<type> ConstIterator<type>::operator-(int32_t rhs)
+	inline  ConstIterator<type> ConstIterator<type>::operator-(int32_t rhs)
 	{
 		return ConstIterator{ m_pValue - rhs };
 	}
 
 	template<typename type>
-	inline typename ConstIterator<type> ConstIterator<type>::operator++(int)
+	inline  ConstIterator<type> ConstIterator<type>::operator++(int)
 	{
 		ConstIterator temp = *this;
 		++m_pValue;
@@ -740,14 +740,14 @@ namespace Container
 	}
 
 	template<typename type>
-	inline typename ConstIterator<type>& ConstIterator<type>::operator--()
+	inline  ConstIterator<type>& ConstIterator<type>::operator--()
 	{
 		--m_pValue;
 		return *this;
 	}
 
 	template<typename type>
-	inline typename ConstIterator<type> ConstIterator<type>::operator--(int)
+	inline  ConstIterator<type> ConstIterator<type>::operator--(int)
 	{
 		ConstIterator temp = *this;
 		--m_pValue;
@@ -755,14 +755,14 @@ namespace Container
 	}
 
 	template<typename type>
-	inline typename ConstIterator<type>& ConstIterator<type>::operator+=(int32_t rhs)
+	inline  ConstIterator<type>& ConstIterator<type>::operator+=(int32_t rhs)
 	{
 		m_pValue += rhs;
 		return *this;
 	}
 
 	template<typename type>
-	inline typename ConstIterator<type>& ConstIterator<type>::operator-=(int32_t rhs)
+	inline  ConstIterator<type>& ConstIterator<type>::operator-=(int32_t rhs)
 	{
 		m_pValue -= rhs;
 		return *this;
